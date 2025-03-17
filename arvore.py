@@ -33,19 +33,59 @@ class GeneralTree:
                 return result
         return None
 
+    def search_binary_tree(self, value, node=None):
+        if node is None:
+            node = self.root
+        if node is None:
+            return None
+        if node.value == value:
+            return node
+        elif value < node.value and len(node.children) > 0:
+            return self.search_binary_tree(value, node.children[0])
+        elif value > node.value and len(node.children) > 1:
+            return self.search_binary_tree(value, node.children[1])
+        return None
+
+    def delete_binary_tree(self, value, node=None, parent=None):
+        if node is None:
+            node = self.root
+        if node is None:
+            print("Árvore vazia.")
+            return None
+
+        if value < node.value and len(node.children) > 0:
+            node.children[0] = self.delete_binary_tree(value, node.children[0], node)
+        elif value > node.value and len(node.children) > 1:
+            node.children[1] = self.delete_binary_tree(value, node.children[1], node)
+        else:
+            if not node.children:  # Nó folha
+                return None
+            elif len(node.children) == 1:  # Um filho
+                return node.children[0]
+            else:  # Dois filhos
+                successor = self.find_min(node.children[1])
+                node.value = successor.value
+                node.children[1] = self.delete_binary_tree(successor.value, node.children[1], node)
+        return node
+
+    def find_min(self, node):
+        while len(node.children) > 0 and node.children[0] is not None:
+            node = node.children[0]
+        return node
+
     def count_nodes(self, node=None):
         if node is None:
             node = self.root
         if node is None:
             return 0
-        return 1 + sum(self.count_nodes(child) for child in node.children)
+        return 1 + sum(self.count_nodes(child) for child in node.children if child is not None)
 
     def count_non_leaf_nodes(self, node=None):
         if node is None:
             node = self.root
         if node is None or not node.children:
             return 0
-        return 1 + sum(self.count_non_leaf_nodes(child) for child in node.children)
+        return 1 + sum(self.count_non_leaf_nodes(child) for child in node.children if child is not None)
 
     def display(self, node, level=0):
         if node is not None:
@@ -60,7 +100,7 @@ class GeneralTree:
             return True
         if len(node.children) > 2:
             return False
-        return all(self.is_binary_tree(child) for child in node.children)
+        return all(self.is_binary_tree(child) for child in node.children if child is not None)
 
     def visualize(self):
         G = nx.DiGraph()
@@ -76,15 +116,16 @@ class GeneralTree:
     def _add_edges(self, node, G):
         if node is not None:
             for child in node.children:
-                G.add_edge(node.value, child.value)
-                self._add_edges(child, G)
+                if child is not None:
+                    G.add_edge(node.value, child.value)
+                    self._add_edges(child, G)
 
     def _binary_tree_layout(self, node, x, y, level_gap, pos, level=0):
         if node:
             pos[node.value] = (x, -y)
-            if len(node.children) > 0:
+            if len(node.children) > 0 and node.children[0] is not None:
                 self._binary_tree_layout(node.children[0], x - level_gap, y + 1, level_gap / 2, pos, level + 1)
-            if len(node.children) > 1:
+            if len(node.children) > 1 and node.children[1] is not None:
                 self._binary_tree_layout(node.children[1], x + level_gap, y + 1, level_gap / 2, pos, level + 1)
         return pos
 
@@ -119,5 +160,13 @@ if tree.is_binary_tree():
 else:
     print("\nA árvore criada NÃO é uma árvore binária.")
 
-print("\nVisualização gráfica da árvore:")
+print("\nVisualização gráfica da árvore antes da remoção:")
 tree.visualize()
+
+if tree.is_binary_tree():
+    value_to_delete = int(input("\nDigite o valor que deseja excluir da árvore binária ordenada: "))
+    tree.root = tree.delete_binary_tree(value_to_delete)
+    print("\nVisualização gráfica da árvore após a remoção:")
+    tree.visualize()
+else:
+    print("A árvore não é binária, não é possível realizar a remoção binária.")
