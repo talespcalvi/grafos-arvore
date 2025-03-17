@@ -33,6 +33,20 @@ class GeneralTree:
                 return result
         return None
 
+    def count_nodes(self, node=None):
+        if node is None:
+            node = self.root
+        if node is None:
+            return 0
+        return 1 + sum(self.count_nodes(child) for child in node.children)
+
+    def count_non_leaf_nodes(self, node=None):
+        if node is None:
+            node = self.root
+        if node is None or not node.children:
+            return 0
+        return 1 + sum(self.count_non_leaf_nodes(child) for child in node.children)
+
     def display(self, node, level=0):
         if node is not None:
             print(" " * (level * 4) + str(node.value))
@@ -96,6 +110,10 @@ def create_tree():
 tree = create_tree()
 print("\nÁrvore criada:")
 tree.display(tree.root)
+node_count = tree.count_nodes()
+non_leaf_count = tree.count_non_leaf_nodes()
+print(f"\nA árvore possui {node_count} nós.")
+print(f"A árvore possui {non_leaf_count} nós não folha.")
 if tree.is_binary_tree():
     print("\nA árvore criada é uma árvore binária.")
 else:
