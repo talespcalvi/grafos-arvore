@@ -39,10 +39,22 @@ class GeneralTree:
             for child in node.children:
                 self.display(child, level + 1)
 
+    def is_binary_tree(self, node=None):
+        if node is None:
+            node = self.root
+        if node is None:
+            return True
+        if len(node.children) > 2:
+            return False
+        return all(self.is_binary_tree(child) for child in node.children)
+
     def visualize(self):
         G = nx.DiGraph()
         self._add_edges(self.root, G)
-        pos = nx.spring_layout(G)
+        if self.is_binary_tree():
+            pos = self._binary_tree_layout(self.root, 0, 0, 1, {})
+        else:
+            pos = nx.spring_layout(G)
         plt.figure(figsize=(12, 8))
         nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=1000, font_size=12, font_weight='bold', arrows=False)
         plt.show()
@@ -52,6 +64,15 @@ class GeneralTree:
             for child in node.children:
                 G.add_edge(node.value, child.value)
                 self._add_edges(child, G)
+
+    def _binary_tree_layout(self, node, x, y, level_gap, pos, level=0):
+        if node:
+            pos[node.value] = (x, -y)
+            if len(node.children) > 0:
+                self._binary_tree_layout(node.children[0], x - level_gap, y + 1, level_gap / 2, pos, level + 1)
+            if len(node.children) > 1:
+                self._binary_tree_layout(node.children[1], x + level_gap, y + 1, level_gap / 2, pos, level + 1)
+        return pos
 
 def create_tree():
     tree = GeneralTree()
@@ -75,5 +96,10 @@ def create_tree():
 tree = create_tree()
 print("\nÁrvore criada:")
 tree.display(tree.root)
+if tree.is_binary_tree():
+    print("\nA árvore criada é uma árvore binária.")
+else:
+    print("\nA árvore criada NÃO é uma árvore binária.")
+
 print("\nVisualização gráfica da árvore:")
 tree.visualize()
