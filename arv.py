@@ -46,7 +46,6 @@ def contar_nos(raiz):
 def contar_nao_folhas(raiz):
     if raiz is None:
         return 0
-    # Se o nó tiver pelo menos um filho (esquerda ou direita), ele não é folha
     if raiz[1] is not None or raiz[2] is not None:
         return 1 + contar_nao_folhas(raiz[1]) + contar_nao_folhas(raiz[2])
     return contar_nao_folhas(raiz[1]) + contar_nao_folhas(raiz[2])
@@ -76,6 +75,16 @@ def remover_valor():
     except ValueError:
         messagebox.showerror("Erro", "Digite um número")
 
+def buscar_no(raiz, chave):
+    if raiz is None:
+        return None
+    if raiz[0] == chave:
+        return raiz
+    elif chave < raiz[0]:
+        return buscar_no(raiz[1], chave)
+    else:
+        return buscar_no(raiz[2], chave)
+
 def adicionar_arestas(raiz, G, pos, x=0, y=0, layer=1):
     if raiz is not None:
         G.add_node(raiz[0], pos=(x, y))
@@ -87,6 +96,7 @@ def adicionar_arestas(raiz, G, pos, x=0, y=0, layer=1):
             adicionar_arestas(raiz[2], G, pos, x + 1 / layer, y - 1, layer + 1)
 
 def desenhar_arvore():
+    plt.close('all')  # Fecha todas as janelas de gráfico abertas
     G = nx.DiGraph()
     pos = {}
     plt.figure(figsize=(8, 5))
@@ -94,6 +104,32 @@ def desenhar_arvore():
     pos = nx.get_node_attributes(G, 'pos')
     nx.draw(G, pos, with_labels=True, node_size=2000, node_color='lightblue', font_size=10, font_weight='bold')
     plt.show()
+
+def desenhar_arvore_destacado(no_destacado):
+    plt.close('all')  # Fecha todas as janelas de gráfico abertas
+    G = nx.DiGraph()
+    pos = {}
+    adicionar_arestas(raiz, G, pos)
+    pos = nx.get_node_attributes(G, 'pos')
+    
+    node_colors = ['lightblue' if node != no_destacado else 'yellow' for node in G.nodes()]
+    
+    plt.figure(figsize=(8, 5))
+    nx.draw(G, pos, with_labels=True, node_size=2000, node_color=node_colors, font_size=10, font_weight='bold')
+    plt.show()
+
+def localizar_valor():
+    global raiz
+    try:
+        valor = int(entrada.get())
+        no_encontrado = buscar_no(raiz, valor)
+        
+        if no_encontrado:
+            desenhar_arvore_destacado(no_encontrado[0])
+        else:
+            messagebox.showinfo("Resultado da pesquisa", "Valor não encontrado na árvore.")
+    except ValueError:
+        messagebox.showerror("Erro", "Digite um número")
 
 # Interface
 raiz = None
@@ -108,6 +144,9 @@ botao_inserir.pack()
 
 botao_remover = tk.Button(janela, text="Remover", command=remover_valor)
 botao_remover.pack()
+
+botao_localizar = tk.Button(janela, text="Localizar", command=localizar_valor)
+botao_localizar.pack()
 
 contagem_label = tk.Label(janela, text="Nós: 0 | Não-folhas: 0")
 contagem_label.pack()
